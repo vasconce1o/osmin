@@ -25,9 +25,9 @@
 
 void BuiltInSensorPlugin::registerSensors()
 {
-  if (!QSensorManager::isBackendRegistered(QCompass::type, GenericCompass::id)) {
+    if (!QSensorManager::isBackendRegistered(QCompass::sensorType, GenericCompass::id)) {
     qInfo("Register sensor backend: %s", GenericCompass::id);
-    QSensorManager::registerBackend(QCompass::type, GenericCompass::id, this);
+        QSensorManager::registerBackend(QCompass::sensorType, GenericCompass::id, this);
   }
 }
 
