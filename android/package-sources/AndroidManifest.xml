@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionName="1.10.4" android:versionCode="59" package="io.github.janbar.osmin" android:installLocation="auto">
+  <application android:label="osmin" android:name="org.qtproject.qt.android.bindings.QtApplication">
+    <activity android:label="osmin" android:exported="true" android:name="org.qtproject.qt.android.bindings.QtActivity" android:screenOrientation="unspecified" android:configChanges="orientation|uiMode|screenLayout|screenSize|smallestScreenSize|locale|fontScale|keyboard|keyboardHidden|navigation">
+      <intent-filter>
+        <action android:name="android.intent.action.MAIN"/>
+        <category android:name="android.intent.category.LAUNCHER"/>
+      </intent-filter>
+            <meta-data android:name="android.app.lib_name" android:value="-- %%INSERT_APP_LIB_NAME%% --"/>
+            <meta-data android:name="android.app.extract_android_style" android:value="default"/>
+            <!-- extract android style -->
+    </activity>
+    <service android:process=":qt_service" android:name=".QtAndroidService" android:foregroundServiceType="location" android:exported="true">
+      <meta-data android:name="android.app.lib_name" android:value="-- %%INSERT_APP_LIB_NAME%% --"/>
+      <meta-data android:name="android.app.arguments" android:value="-service"/>
+      <meta-data android:name="android.app.background_running" android:value="true"/>
+    </service>
+  </application>
+  <supports-screens android:anyDensity="true" android:normalScreens="true" android:smallScreens="true" android:largeScreens="true"/>
+  <uses-permission android:name="android.permission.INTERNET"/>
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+  <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION"/>
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
+</manifest>

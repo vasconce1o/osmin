@@ -34,9 +34,9 @@
 #include <locale>
 
 #ifdef Q_OS_ANDROID
-#include <QtAndroid>
-#include <QAndroidService>
-#include <QAndroidJniObject>
+#include <QtCore/private/qandroidextras_p.h>
+#include <QCoreApplication>
+#include <QJniObject>
 #endif
 
 #define DIR_MAPS          "Maps"
@@ -59,7 +59,7 @@
 #endif
 
 /* The name of the service end-point must include the revision of the API */
-#define SERVICE_URL                 "local:osmin59"
+#define SERVICE_URL                 "localabstract:osmin59"
 #define SERVICE_FLAG                "-service"
 
 #define OSMIN_MODULE                "Osmin"         // QML module name
@@ -162,10 +162,10 @@ int startService(int argc, char* argv[])
 
 #ifdef Q_OS_ANDROID
   QAndroidService app(argc, argv);
-  QAndroidJniObject service = QtAndroid::androidService();
-  QAndroidJniObject nullstr = QAndroidJniObject::fromString("");
-  QAndroidJniObject file = service.callObjectMethod("getExternalFilesDir", "(Ljava/lang/String;)Ljava/io/File;", nullstr.object<jstring>());
-  QAndroidJniObject path = file.callObjectMethod("getAbsolutePath", "()Ljava/lang/String;");
+  QJniObject service = QNativeInterface::QAndroidApplication::context();
+  QJniObject nullstr = QJniObject::fromString("");
+  QJniObject file = service.callObjectMethod("getExternalFilesDir", "(Ljava/lang/String;)Ljava/io/File;", nullstr.object<jstring>());
+  QJniObject path = file.callObjectMethod("getAbsolutePath", "()Ljava/lang/String;");
   g_homeDir = QDir(path.toString());
   if (!g_homeDir.mkpath(DIR_RES))
     return EXIT_FAILURE;
@@ -219,7 +219,8 @@ int startGUI(int argc, char* argv[])
   {
     QStringList androidPermissions;
     androidPermissions.append("android.permission.ACCESS_FINE_LOCATION");
-    QtAndroid::requestPermissionsSync(androidPermissions);
+    //    qApp->requestPermission(QCameraPermission{}, context, [](const QPermission &permission) {
+    //    });
   }
   if (!g_homeDir.mkpath(DIR_RES))
     return EXIT_FAILURE;
@@ -241,10 +242,10 @@ int startGUI(int argc, char* argv[])
 
   // fork the service process
 #if defined(Q_OS_ANDROID)
-  QAndroidJniObject::callStaticMethod<void>("io/github/janbar/osmin/QtAndroidService",
-                                                "startQtAndroidService",
-                                                "(Landroid/content/Context;)V",
-                                                QtAndroid::androidActivity().object());
+  QJniObject::callStaticMethod<void>("io/github/janbar/osmin/QtAndroidService",
+                                     "startQtAndroidService",
+                                     "(Landroid/content/Context;)V",
+                                     QNativeInterface::QAndroidApplication::context());
 #else
   QScopedPointer<QProcess> psvc(new QProcess());
   if (!testServiceUrl(SERVICE_URL, 100))
@@ -532,10 +533,10 @@ int startGUI(int argc, char* argv[])
   serviceFrontend->terminate();
 
 #if defined(Q_OS_ANDROID)
-  QAndroidJniObject::callStaticMethod<void>("io/github/janbar/osmin/QtAndroidService",
-                                                "stopQtAndroidService",
-                                                "(Landroid/content/Context;)V",
-                                                QtAndroid::androidActivity().object());
+    QJniObject::callStaticMethod<void>("io/github/janbar/osmin/QtAndroidService",
+                                     "stopQtAndroidService",
+                                     "(Landroid/content/Context;)V",
+                                     QNativeInterface::QAndroidApplication::context());
 #else
   if (psvc->state() != QProcess::NotRunning)
   {

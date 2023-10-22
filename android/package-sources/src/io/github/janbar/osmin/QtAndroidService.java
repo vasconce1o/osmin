@@ -3,7 +3,7 @@ package io.github.janbar.osmin;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
-import org.qtproject.qt5.android.bindings.QtService;
+import org.qtproject.qt.android.bindings.QtService;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -12,12 +12,12 @@ import android.os.Build;
 
 public class QtAndroidService extends QtService
 {
-    private static final String TAG = "qt_service";
+    private static final String TAG = "QtAndroidService";
 
     @Override
     public void onCreate() {
         super.onCreate();
-        Log.i(TAG, "Creating Service");
+        Log.i(TAG, "Creating Services");
     }
 
     @Override
@@ -40,7 +40,6 @@ public class QtAndroidService extends QtService
                .setSmallIcon(android.R.drawable.ic_menu_mylocation);
 
         startForeground(1, builder.build());
-
         return START_STICKY;
     }
 
@@ -58,7 +57,7 @@ public class QtAndroidService extends QtService
     }
 
     public static void startQtAndroidService(Context context) {
-        Log.i(TAG, "Starting Service");
+        Log.i(TAG, "Starting Services");
         context.startService(new Intent(context, QtAndroidService.class));
     }
 

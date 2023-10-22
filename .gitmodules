@@ -1,4 +1,4 @@
 [submodule "backend/libosmscout"]
 	path = backend/libosmscout
-	url = https://github.com/janbar/libosmscout.git
-	branch = osmin
+        url = https://github.com/vasconce1o/libosmscout.git
+        branch = qt6

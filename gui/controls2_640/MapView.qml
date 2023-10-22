@@ -148,7 +148,7 @@ MapPage {
             provider: hillshadeProvider
         }
 
-        onTap: {
+        onTap: (screenX, screenY) => {
             mark.screenX = screenX;
             mark.screenY = screenY;
             mark.lat = lat;
@@ -173,7 +173,7 @@ MapPage {
             }
         }
 
-        onLongTap: {
+        onLongTap: (screenX, screenY) => {
             mark.showOverlay = true;
             mark.screenX = screenX;
             mark.screenY = screenY;

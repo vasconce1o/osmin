@@ -16,11 +16,12 @@ if(NOT ANDROID)
 endif()
 
 # find the Qt root directory
-if(NOT Qt5Core_DIR)
-    find_package(Qt5Core REQUIRED)
+if(NOT Qt6Core_DIR)
+    find_package(Qt6Core REQUIRED)
 endif()
-get_filename_component(QT_ANDROID_QT_ROOT "${Qt5Core_DIR}/../../.." ABSOLUTE)
+get_filename_component(QT_ANDROID_QT_ROOT "${Qt6Core_DIR}/../../.." ABSOLUTE)
 message(STATUS "Found Qt for Android: ${QT_ANDROID_QT_ROOT}")
+
 
 # find the Android SDK
 if(NOT QT_ANDROID_SDK_ROOT)
@@ -70,7 +71,7 @@ macro(add_qt_android_apk TARGET SOURCE_TARGET)
 
     # full file path to the app's main shared library
     set(QT_ANDROID_APP_PATH "$<TARGET_FILE:${SOURCE_TARGET}>")
-    if(${Qt5Core_VERSION} VERSION_GREATER_EQUAL 5.14)
+    if(${Qt6Core_VERSION} VERSION_GREATER_EQUAL 5.14)
         set(QT_ANDROID_SUPPORT_MULTI_ABI ON)
     endif()
 
@@ -166,7 +167,7 @@ macro(add_qt_android_apk TARGET SOURCE_TARGET)
 
     if(QT_ANDROID_SUPPORT_MULTI_ABI)
         # from Qt 5.14 qtandroideploy will find the correct stl.
-        set(QT_ANDROID_STL_PATH "${QT_ANDROID_NDK_ROOT}/sources/cxx-stl/${ANDROID_STL_PREFIX}/libs")
+        set(QT_ANDROID_STL_PATH "${QT_ANDROID_NDK_ROOT}/toolchains/llvm/prebuilt/linux-x86_64/sysroot/usr/lib")
     else()
         # define the STL shared library path
         # up until NDK r18, ANDROID_STL_SHARED_LIBRARIES is populated by the NDK's toolchain file
@@ -210,7 +211,16 @@ macro(add_qt_android_apk TARGET SOURCE_TARGET)
         endforeach()
         set(QT_ANDROID_APP_EXTRA_LIBS "\"android-extra-libs\": \"${EXTRA_LIBS}\",")
     endif()
+    # if ssl is not compiled
+    set_target_properties(osmin PROPERTIES
+        QT_ANDROID_EXTRA_LIBS
+            "${EXTRA_LIBS},${ANDROID_SDK_ROOT}/android_openssl/ssl_3/${ANDROID_ABI}/libcrypto_3.so,${ANDROID_SDK_ROOT}/android_openssl/ssl_3/${ANDROID_ABI}/libssl_3.so"
+    )
 
+    set_target_properties(osmin PROPERTIES
+        QT_ANDROID_PACKAGE_SOURCE_DIR
+            "${QT_ANDROID_SOURCE_DIR}/package-sources"
+    )
     # deploy Qt translations
     set(EXTRA_PLUGINS "${QT_ANDROID_QT_ROOT}/translations")
 
@@ -219,8 +229,16 @@ macro(add_qt_android_apk TARGET SOURCE_TARGET)
         foreach(PLUGIN ${ARG_PLUGINS})
             if(EXTRA_PLUGINS)
                 set(EXTRA_PLUGINS "${EXTRA_PLUGINS},${PLUGIN}")
+                set_target_properties(osmin PROPERTIES
+                    QT_ANDROID_EXTRA_PLUGINS
+                        "${EXTRA_PLUGINS},${PLUGIN}"
+                )
             else()
                 set(EXTRA_PLUGINS "${PLUGIN}")
+                set_target_properties(osmin PROPERTIES
+                    QT_ANDROID_EXTRA_PLUGINS
+                        "${PLUGIN}"
+                )
             endif()
         endforeach()
     endif()
@@ -302,27 +320,5 @@ macro(add_qt_android_apk TARGET SOURCE_TARGET)
     elseif()
         set(QT_ANDROID_BUILD_TYPE --release)
     endif()
-
-    # create a custom command that will run the androiddeployqt utility to prepare the Android package
-    add_custom_target(
-        ${TARGET}
-        ALL
-        DEPENDS ${SOURCE_TARGET}
-        ${QT_ANDROID_PRE_COMMANDS}
-        # it seems that recompiled libraries are not copied if we don't remove them first
-        COMMAND ${CMAKE_COMMAND} -E remove_directory ${QT_ANDROID_APP_BINARY_DIR}/libs/${ANDROID_ABI}
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${QT_ANDROID_APP_BINARY_DIR}/libs/${ANDROID_ABI}
-        COMMAND ${CMAKE_COMMAND} -E copy ${QT_ANDROID_APP_PATH} ${QT_ANDROID_APP_BINARY_DIR}/libs/${ANDROID_ABI}
-        COMMAND ${QT_ANDROID_QT_ROOT}/bin/androiddeployqt
-        --output ${QT_ANDROID_APP_BINARY_DIR}
-        --input ${CMAKE_CURRENT_BINARY_DIR}/qtdeploy.json
-        --gradle
-        ${QT_ANDROID_BUILD_TYPE}
-        ${TARGET_LEVEL_OPTIONS}
-        ${INSTALL_OPTIONS}
-        ${SIGN_OPTIONS}
-    )
-    # Extra for debugging APK: set android:debuggable="true" in AndroidManifest.xml
-    # androiddeployqt --gdbserver --no-strip --verbose
 
 endmacro()

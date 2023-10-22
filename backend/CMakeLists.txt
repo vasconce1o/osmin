@@ -55,48 +55,48 @@ if(NOT ZLIB_FOUND)
 endif()
 
 # Provides dependency openssl
-if(NOT BUILD_DEPENDENCIES)
-    find_package(OpenSSL QUIET)
-endif()
-if(NOT OPENSSL_FOUND)
-    if(DEFINED Qt5Core_VERSION AND Qt5Core_VERSION VERSION_LESS 5.12.4)
-        set(OPENSSL_DL_ABI "1.0")
-    endif()
-    if(OPENSSL_DL_ABI STREQUAL "1.0")
-        download_project(PROJ "openssl-${OPENSSL_DL_ABI}"
-            GIT_REPOSITORY https://github.com/janbar/openssl-cmake.git
-            GIT_TAG 1.0.2p-20220130
-            GIT_SHALLOW 1
-            PREFIX ${CMAKE_CURRENT_BINARY_DIR}
-            UPDATE_DISCONNECTED ON)
-    else()
-        set(OPENSSL_DL_ABI "1.1")
-        download_project(PROJ "openssl-${OPENSSL_DL_ABI}"
-            GIT_REPOSITORY https://github.com/janbar/openssl-cmake.git
-            GIT_TAG 1.1.1t-20230216
-            GIT_SHALLOW 1
-            PREFIX ${CMAKE_CURRENT_BINARY_DIR}
-            UPDATE_DISCONNECTED ON)
-    endif()
-    if(ANDROID OR MSVC)
-        set(BUILD_SHARED_LIBS ON)
-    else()
-        set(BUILD_SHARED_LIBS OFF)
-    endif()
-    add_subdirectory(
-        ${CMAKE_CURRENT_BINARY_DIR}/openssl-${OPENSSL_DL_ABI}-src
-        ${CMAKE_CURRENT_BINARY_DIR}/openssl-${OPENSSL_DL_ABI}-build
-        EXCLUDE_FROM_ALL
-    )
-    set(OPENSSL_SSL_LIBRARY ssl PARENT_SCOPE)
-    set(OPENSSL_CRYPTO_LIBRARY crypto PARENT_SCOPE)
-    set(OPENSSL_INCLUDE_DIR "${openssl_BINARY_DIR}/include" "${openssl_BINARY_DIR}" PARENT_SCOPE)
-    set(OPENSSL_FOUND ON PARENT_SCOPE)
-    export(TARGETS crypto ssl FILE OpenSSLTargets.cmake)
-    add_library(OpenSSL::Crypto ALIAS crypto)
-    add_library(OpenSSL::SSL ALIAS ssl)
-    message(STATUS "Build OpenSSL: ${openssl_BINARY_DIR}")
-endif()
+#if(NOT BUILD_DEPENDENCIES)
+#    find_package(OpenSSL QUIET)
+#endif()
+#if(NOT OPENSSL_FOUND)
+#    if(DEFINED Qt5Core_VERSION AND Qt5Core_VERSION VERSION_LESS 5.12.4)
+#        set(OPENSSL_DL_ABI "1.0")
+#    endif()
+#    if(OPENSSL_DL_ABI STREQUAL "1.0")
+#        download_project(PROJ "openssl-${OPENSSL_DL_ABI}"
+#            GIT_REPOSITORY https://github.com/janbar/openssl-cmake.git
+#            GIT_TAG 1.0.2p-20220130
+#            GIT_SHALLOW 1
+#            PREFIX ${CMAKE_CURRENT_BINARY_DIR}
+#            UPDATE_DISCONNECTED ON)
+#    else()
+#        set(OPENSSL_DL_ABI "1.1")
+#        download_project(PROJ "openssl-${OPENSSL_DL_ABI}"
+#            GIT_REPOSITORY https://github.com/janbar/openssl-cmake.git
+#            GIT_TAG 1.1.1t-20230216
+#            GIT_SHALLOW 1
+#            PREFIX ${CMAKE_CURRENT_BINARY_DIR}
+#            UPDATE_DISCONNECTED ON)
+#    endif()
+#    if(ANDROID OR MSVC)
+#        set(BUILD_SHARED_LIBS ON)
+#    else()
+#        set(BUILD_SHARED_LIBS OFF)
+#    endif()
+#    add_subdirectory(
+#        ${CMAKE_CURRENT_BINARY_DIR}/openssl-${OPENSSL_DL_ABI}-src
+#        ${CMAKE_CURRENT_BINARY_DIR}/openssl-${OPENSSL_DL_ABI}-build
+#        EXCLUDE_FROM_ALL
+#    )
+#    set(OPENSSL_SSL_LIBRARY ssl PARENT_SCOPE)
+#    set(OPENSSL_CRYPTO_LIBRARY crypto PARENT_SCOPE)
+#    set(OPENSSL_INCLUDE_DIR "${openssl_BINARY_DIR}/include" "${openssl_BINARY_DIR}" PARENT_SCOPE)
+#    set(OPENSSL_FOUND ON PARENT_SCOPE)
+#    export(TARGETS crypto ssl FILE OpenSSLTargets.cmake)
+#    add_library(OpenSSL::Crypto ALIAS crypto)
+#    add_library(OpenSSL::SSL ALIAS ssl)
+#    message(STATUS "Build OpenSSL: ${openssl_BINARY_DIR}")
+#endif()
 
 # Provides internal iconv
 if(NOT ICONV_FOUND)
@@ -203,10 +203,11 @@ set(OSMSCOUT_BUILD_MAP_QT           ON  CACHE BOOL "" FORCE)
 set(OSMSCOUT_BUILD_MAP_SVG          OFF CACHE BOOL "" FORCE)
 set(OSMSCOUT_BUILD_TESTS            OFF CACHE BOOL "" FORCE)
 set(OSMSCOUT_BUILD_TOOL_DUMPDATA    OFF CACHE BOOL "" FORCE)
-set(OSMSCOUT_BUILD_TOOL_IMPORT      ON  CACHE BOOL "" FORCE)
+set(OSMSCOUT_BUILD_TOOL_IMPORT      OFF  CACHE BOOL "" FORCE)
+set(OSMSCOUT_BUILD_IMPORT           OFF CACHE BOOL "" FORCE)
 set(OSMSCOUT_BUILD_TOOL_OSMSCOUT2   OFF CACHE BOOL "" FORCE)
 set(OSMSCOUT_BUILD_TOOL_OSMSCOUTOPENGL OFF CACHE BOOL "" FORCE)
-set(OSMSCOUT_BUILD_TOOL_STYLEEDITOR ON  CACHE BOOL "" FORCE)
+set(OSMSCOUT_BUILD_TOOL_STYLEEDITOR OFF  CACHE BOOL "" FORCE)
 set(OSMSCOUT_BUILD_WEBPAGE          OFF CACHE BOOL "" FORCE)
 add_subdirectory(libosmscout EXCLUDE_FROM_ALL)
 

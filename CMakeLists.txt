@@ -118,6 +118,7 @@ elseif(QT_VERSION_MAJOR EQUAL 6)
     find_package(Qt6 ${QT_VERSION} COMPONENTS
         Core Gui Qml Quick QuickControls2 Widgets Xml Svg Network Sensors
         Multimedia RemoteObjects Positioning Core5Compat REQUIRED)
+    qt_standard_project_setup(REQUIRES ${QT_VERSION})
     if(UNIX AND NOT APPLE)
         find_library(DBUS_LIBRARIES dbus-1)
         if(DBUS_LIBRARIES)
@@ -191,25 +192,21 @@ add_definitions(-DAPP_VERSION="${APP_VERSION}")
 
 include_directories(${PROJECT_BINARY_DIR} ${LIBOSMSCOUT_INCLUDE_DIRS})
 
-if(ANDROID)
-    add_library(osmin SHARED ${osmin_SOURCES} ${osmin_HEADERS} ${osmin-resources})
-else()
-    add_executable(osmin ${osmin_SOURCES} ${osmin_HEADERS} ${osmin-resources})
-endif()
+qt_add_executable(osmin ${osmin_SOURCES} ${osmin_HEADERS} ${osmin-resources})
 
 if(QT_VERSION_MAJOR EQUAL 6)
     qt6_add_repc_sources(osmin src/servicemessenger.rep)
     qt6_add_repc_replicas(osmin src/servicemessenger.rep)
 endif()
 
-target_link_libraries(osmin ${LIBOSMSCOUT_LIBRARIES})
+target_link_libraries(osmin PRIVATE ${LIBOSMSCOUT_LIBRARIES})
 
 add_definitions(-DQT_STATICPLUGIN)
 
 if(ANDROID)
     add_definitions(-DDEVICE_MOBILE)
     add_definitions(-frtti) # dynamic_cast: https://github.com/android/ndk/issues/519
-    target_link_libraries(osmin android log
+    target_link_libraries(osmin PRIVATE android log
         Qt::RemoteObjects Qt::Positioning
         Qt::QuickControls2 Qt::Qml Qt::Quick
         Qt::Widgets Qt::Gui Qt::Xml
@@ -219,7 +216,7 @@ if(ANDROID)
         target_link_libraries(osmin Qt::AndroidExtras)
     endif()
     if(QT_VERSION_MAJOR EQUAL 6)
-        target_link_libraries(osmin Qt6::Core5Compat)
+        target_link_libraries(osmin PRIVATE Qt6::Core5Compat Qt6::CorePrivate)
     endif()
 else()
     if(BUILD_DEVICE_MOBILE)
@@ -245,7 +242,7 @@ if(ANDROID)
     if(OpenMP_CXX_LIBRARIES MATCHES libomp.so)
        set(SHARED_LIBOMP ${OpenMP_CXX_LIBRARIES})
     endif()
-    add_dependencies(osmin ssl crypto)
+    #add_dependencies(osmin ssl crypto)
     include(android/AddQtAndroidApk.cmake)
     add_qt_android_apk(osmin-apk osmin
         NAME ${APP_NAME}
@@ -253,7 +250,8 @@ if(ANDROID)
         PACKAGE_NAME ${APP_ID}
         PACKAGE_SOURCES ${CMAKE_SOURCE_DIR}/android/package-sources
         BUILDTOOLS_REVISION ${QT_ANDROID_SDK_BUILDTOOLS_REVISION}
-        DEPENDS ssl crypto ${SHARED_LIBOMP}
+        #DEPENDS ssl crypto ${SHARED_LIBOMP}
+        DEPENDS ${SHARED_LIBOMP}
         PLUGINS ${CMAKE_SOURCE_DIR}/resources
         KEYSTORE ${KEYSTORE_FILE} ${KEYSTORE_ALIAS}
         KEYSTORE_PASSWORD ${KEYSTORE_PASSWORD}

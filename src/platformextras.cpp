@@ -25,8 +25,8 @@
 #define AUTO_MOUNT        "/run/media/"
 
 #elif defined(Q_OS_ANDROID)
-#include <QtAndroid>
-#include <QAndroidJniEnvironment>
+#include <QCoreApplication>
+#include <QJniObject>
 #define AUTO_MOUNT        "/storage/"
 
 #else
@@ -67,10 +67,10 @@ PlatformExtras::~PlatformExtras()
 QString PlatformExtras::getHomeDir()
 {
 #ifdef Q_OS_ANDROID
-  QAndroidJniObject activity = QtAndroid::androidActivity();
-  QAndroidJniObject nullstr = QAndroidJniObject::fromString("");
-  QAndroidJniObject file = activity.callObjectMethod("getExternalFilesDir", "(Ljava/lang/String;)Ljava/io/File;", nullstr.object<jstring>());
-  QAndroidJniObject path = file.callObjectMethod("getAbsolutePath", "()Ljava/lang/String;");
+  QJniObject activity = QNativeInterface::QAndroidApplication::context();
+  QJniObject nullstr = QJniObject::fromString("");
+  QJniObject file = activity.callObjectMethod("getExternalFilesDir", "(Ljava/lang/String;)Ljava/io/File;", nullstr.object<jstring>());
+  QJniObject path = file.callObjectMethod("getAbsolutePath", "()Ljava/lang/String;");
   return path.toString();
 #else
   return QStandardPaths::writableLocation(QStandardPaths::HomeLocation);
@@ -93,10 +93,10 @@ QStringList PlatformExtras::getStorageDirs()
   /*
    * WARNING: SDCARD storage cannot be properly managed since Android 10. Therefore I return only the internal storage.
    */
-  QAndroidJniObject activity = QtAndroid::androidActivity();
-  QAndroidJniObject nullstr = QAndroidJniObject::fromString("");
-  QAndroidJniObject file = activity.callObjectMethod("getExternalFilesDir", "(Ljava/lang/String;)Ljava/io/File;", nullstr.object<jstring>());
-  QAndroidJniObject path = file.callObjectMethod("getAbsolutePath", "()Ljava/lang/String;");
+  QJniObject activity = QNativeInterface::QAndroidApplication::context();
+  QJniObject nullstr = QJniObject::fromString("");
+  QJniObject file = activity.callObjectMethod("getExternalFilesDir", "(Ljava/lang/String;)Ljava/io/File;", nullstr.object<jstring>());
+  QJniObject path = file.callObjectMethod("getAbsolutePath", "()Ljava/lang/String;");
   dirs.push_back(path.toString());
 #else
   // search for a mounted sdcard
@@ -120,14 +120,15 @@ void PlatformExtras::setPreventBlanking(bool on)
   m_preventBlanking = on;
 #if defined(Q_OS_ANDROID)
   {
-    QtAndroid::runOnAndroidThread([on]
+    QNativeInterface::QAndroidApplication::runOnAndroidMainThread([on]
     {
-      static const int FLAG_KEEP_SCREEN_ON = QAndroidJniObject::getStaticField<jint>("android/view/WindowManager$LayoutParams", "FLAG_KEEP_SCREEN_ON");
-      auto window = QtAndroid::androidActivity().callObjectMethod("getWindow", "()Landroid/view/Window;");
-      if (on)
-        window.callMethod<void>("addFlags", "(I)V", FLAG_KEEP_SCREEN_ON);
-      else
-        window.callMethod<void>("clearFlags", "(I)V", FLAG_KEEP_SCREEN_ON);
+        static const int FLAG_KEEP_SCREEN_ON = QJniObject::getStaticField<jint>("android/view/WindowManager$LayoutParams", "FLAG_KEEP_SCREEN_ON");
+        QJniObject activity = QNativeInterface::QAndroidApplication::context();
+        auto window = activity.callObjectMethod("getWindow", "()Landroid/view/Window;");
+        if (on)
+            window.callMethod<void>("addFlags", "(I)V", FLAG_KEEP_SCREEN_ON);
+        else
+            window.callMethod<void>("clearFlags", "(I)V", FLAG_KEEP_SCREEN_ON);
     });
   }
 #elif defined(HAVE_DBUS)
